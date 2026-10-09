@@ -1,0 +1,558 @@
+{
+  "data_source": "Wikimedia pageview catalog (20 articles)",
+  "catalog": {
+    "Christa Pike": 0.0833,
+    "Wikimedia Foundation": 0.1517,
+    "2026 Brazilian general election": 0.1464,
+    "Digger (2026 film)": 0.054,
+    "Drishyam: The Conclusion": 0.0357,
+    "Lanterns (TV series)": 0.1444,
+    ".xxx": 0.023,
+    "East of Eden (novel)": 0.0306,
+    "East of Eden (2026 miniseries)": 0.0204,
+    "Dakota Johnson": 0.0766,
+    "Deaths in 2026": 0.0766,
+    "Lizzie Borden": 0.0766,
+    "Fl\u00e1vio Bolsonaro": 0.0766,
+    "Robert Kelker-Kelly": 0.0766,
+    "Dennis Hastert": 0.0766,
+    "Karl Deisseroth": 0.0766,
+    "Verity (film)": 0.0766,
+    "Bryce Young": 0.0766,
+    "Ted Kaczynski": 0.0766,
+    "Jeffrey Archer": 0.0766
+  },
+  "requests": 1000,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "edges_per_region": 3,
+  "users_per_region": 6,
+  "cache_capacity_items": 3,
+  "fast_link": {
+    "latency": 2.0,
+    "bandwidth": 1000.0
+  },
+  "slow_link": {
+    "latency": 40.0,
+    "bandwidth": 50.0
+  },
+  "mixed": "1 fast and 2 slow links per regional triangle",
+  "summary": [
+    {
+      "scenario": "fast",
+      "strategy": "non_cooperative",
+      "overall_hit_rate": {
+        "mean": 17.28,
+        "sample_sd": 1.2795832654944082
+      },
+      "average_latency": {
+        "mean": 83.72969946489899,
+        "sample_sd": 2.065591113478214
+      },
+      "total_bandwidth_used": {
+        "mean": 211.6489700000015,
+        "sample_sd": 3.240369735779615
+      },
+      "origin_requests": {
+        "mean": 827.2,
+        "sample_sd": 12.795832654944082
+      },
+      "local_hits": {
+        "mean": 172.8,
+        "sample_sd": 12.795832654944082
+      },
+      "cooperative_hits": {
+        "mean": 0,
+        "sample_sd": 0.0
+      },
+      "total_peer_checks": {
+        "mean": 0,
+        "sample_sd": 0.0
+      },
+      "average_coordination_latency_ms": {
+        "mean": 0.0,
+        "sample_sd": 0.0
+      }
+    },
+    {
+      "scenario": "fast",
+      "strategy": "always_cooperative",
+      "overall_hit_rate": {
+        "mean": 40.8,
+        "sample_sd": 1.6200137173630476
+      },
+      "average_latency": {
+        "mean": 86.06832354666929,
+        "sample_sd": 2.38090871484677
+      },
+      "total_bandwidth_used": {
+        "mean": 191.70537000000107,
+        "sample_sd": 2.7798076564356466
+      },
+      "origin_requests": {
+        "mean": 592,
+        "sample_sd": 16.200137173630488
+      },
+      "local_hits": {
+        "mean": 172,
+        "sample_sd": 12.192894105447921
+      },
+      "cooperative_hits": {
+        "mean": 236,
+        "sample_sd": 8.640987597877148
+      },
+      "total_peer_checks": {
+        "mean": 1520.8,
+        "sample_sd": 27.062889720057612
+      },
+      "average_coordination_latency_ms": {
+        "mean": 21.2912,
+        "sample_sd": 0.37888045608080717
+      }
+    },
+    {
+      "scenario": "fast",
+      "strategy": "cooperative",
+      "overall_hit_rate": {
+        "mean": 38.96,
+        "sample_sd": 2.53385959446147
+      },
+      "average_latency": {
+        "mean": 84.36574944673468,
+        "sample_sd": 2.8488888128503373
+      },
+      "total_bandwidth_used": {
+        "mean": 193.0934000000011,
+        "sample_sd": 3.5638361257375335
+      },
+      "origin_requests": {
+        "mean": 610.4,
+        "sample_sd": 25.3385959446147
+      },
+      "local_hits": {
+        "mean": 172.4,
+        "sample_sd": 12.057270743322379
+      },
+      "cooperative_hits": {
+        "mean": 217.2,
+        "sample_sd": 20.622533522554615
+      },
+      "total_peer_checks": {
+        "mean": 1385.7,
+        "sample_sd": 105.68196524373388
+      },
+      "average_coordination_latency_ms": {
+        "mean": 19.3998,
+        "sample_sd": 1.4795475134122744
+      }
+    },
+    {
+      "scenario": "fast",
+      "strategy": "ml_cooperative",
+      "overall_hit_rate": {
+        "mean": 38.29,
+        "sample_sd": 3.0610274237400894
+      },
+      "average_latency": {
+        "mean": 86.132967541069,
+        "sample_sd": 3.4310756293072386
+      },
+      "total_bandwidth_used": {
+        "mean": 194.3467300000012,
+        "sample_sd": 8.35800476097931
+      },
+      "origin_requests": {
+        "mean": 630.3,
+        "sample_sd": 31.337056516385058
+      },
+      "local_hits": {
+        "mean": 191.4,
+        "sample_sd": 12.473972903610141
+      },
+      "cooperative_hits": {
+        "mean": 191.5,
+        "sample_sd": 25.11860753394671
+      },
+      "total_peer_checks": {
+        "mean": 1362,
+        "sample_sd": 107.84144740209015
+      },
+      "average_coordination_latency_ms": {
+        "mean": 19.068,
+        "sample_sd": 1.5097802636292619
+      }
+    },
+    {
+      "scenario": "slow",
+      "strategy": "non_cooperative",
+      "overall_hit_rate": {
+        "mean": 17.28,
+        "sample_sd": 1.2795832654944082
+      },
+      "average_latency": {
+        "mean": 83.72969946489899,
+        "sample_sd": 2.065591113478214
+      },
+      "total_bandwidth_used": {
+        "mean": 211.6489700000015,
+        "sample_sd": 3.240369735779615
+      },
+      "origin_requests": {
+        "mean": 827.2,
+        "sample_sd": 12.795832654944082
+      },
+      "local_hits": {
+        "mean": 172.8,
+        "sample_sd": 12.795832654944082
+      },
+      "cooperative_hits": {
+        "mean": 0,
+        "sample_sd": 0.0
+      },
+      "total_peer_checks": {
+        "mean": 0,
+        "sample_sd": 0.0
+      },
+      "average_coordination_latency_ms": {
+        "mean": 0.0,
+        "sample_sd": 0.0
+      }
+    },
+    {
+      "scenario": "slow",
+      "strategy": "always_cooperative",
+      "overall_hit_rate": {
+        "mean": 40.8,
+        "sample_sd": 1.6200137173630476
+      },
+      "average_latency": {
+        "mean": 213.62477490666922,
+        "sample_sd": 3.952442830117334
+      },
+      "total_bandwidth_used": {
+        "mean": 191.70537000000107,
+        "sample_sd": 2.7798076564356466
+      },
+      "origin_requests": {
+        "mean": 592,
+        "sample_sd": 16.200137173630488
+      },
+      "local_hits": {
+        "mean": 172,
+        "sample_sd": 12.192894105447921
+      },
+      "cooperative_hits": {
+        "mean": 236,
+        "sample_sd": 8.640987597877148
+      },
+      "total_peer_checks": {
+        "mean": 1520.8,
+        "sample_sd": 27.062889720057612
+      },
+      "average_coordination_latency_ms": {
+        "mean": 136.87199999999999,
+        "sample_sd": 2.4356600748051815
+      }
+    },
+    {
+      "scenario": "slow",
+      "strategy": "cooperative",
+      "overall_hit_rate": {
+        "mean": 23.439999999999998,
+        "sample_sd": 1.4893697399310295
+      },
+      "average_latency": {
+        "mean": 110.3991000262101,
+        "sample_sd": 2.598282783256501
+      },
+      "total_bandwidth_used": {
+        "mean": 206.25323000000137,
+        "sample_sd": 3.0866546475828898
+      },
+      "origin_requests": {
+        "mean": 765.6,
+        "sample_sd": 14.893697399310295
+      },
+      "local_hits": {
+        "mean": 173.1,
+        "sample_sd": 11.599329482536671
+      },
+      "cooperative_hits": {
+        "mean": 61.3,
+        "sample_sd": 7.746683878351504
+      },
+      "total_peer_checks": {
+        "mean": 378.6,
+        "sample_sd": 10.490207073477837
+      },
+      "average_coordination_latency_ms": {
+        "mean": 34.074,
+        "sample_sd": 0.9441186366130051
+      }
+    },
+    {
+      "scenario": "slow",
+      "strategy": "ml_cooperative",
+      "overall_hit_rate": {
+        "mean": 24.26,
+        "sample_sd": 1.6767693805516477
+      },
+      "average_latency": {
+        "mean": 110.95131209555615,
+        "sample_sd": 2.440378634741841
+      },
+      "total_bandwidth_used": {
+        "mean": 206.2203400000014,
+        "sample_sd": 7.076205332301128
+      },
+      "origin_requests": {
+        "mean": 770.6,
+        "sample_sd": 17.721299174847324
+      },
+      "local_hits": {
+        "mean": 191.4,
+        "sample_sd": 12.473972903610141
+      },
+      "cooperative_hits": {
+        "mean": 51.2,
+        "sample_sd": 8.024961059095551
+      },
+      "total_peer_checks": {
+        "mean": 374.4,
+        "sample_sd": 14.945828106123052
+      },
+      "average_coordination_latency_ms": {
+        "mean": 33.696,
+        "sample_sd": 1.3451245295510743
+      }
+    },
+    {
+      "scenario": "mixed",
+      "strategy": "non_cooperative",
+      "overall_hit_rate": {
+        "mean": 17.28,
+        "sample_sd": 1.2795832654944082
+      },
+      "average_latency": {
+        "mean": 83.72969946489899,
+        "sample_sd": 2.065591113478214
+      },
+      "total_bandwidth_used": {
+        "mean": 211.6489700000015,
+        "sample_sd": 3.240369735779615
+      },
+      "origin_requests": {
+        "mean": 827.2,
+        "sample_sd": 12.795832654944082
+      },
+      "local_hits": {
+        "mean": 172.8,
+        "sample_sd": 12.795832654944082
+      },
+      "cooperative_hits": {
+        "mean": 0,
+        "sample_sd": 0.0
+      },
+      "total_peer_checks": {
+        "mean": 0,
+        "sample_sd": 0.0
+      },
+      "average_coordination_latency_ms": {
+        "mean": 0.0,
+        "sample_sd": 0.0
+      }
+    },
+    {
+      "scenario": "mixed",
+      "strategy": "always_cooperative",
+      "overall_hit_rate": {
+        "mean": 40.8,
+        "sample_sd": 1.6200137173630476
+      },
+      "average_latency": {
+        "mean": 169.36613234666925,
+        "sample_sd": 4.889468770248101
+      },
+      "total_bandwidth_used": {
+        "mean": 191.70537000000107,
+        "sample_sd": 2.7798076564356466
+      },
+      "origin_requests": {
+        "mean": 592,
+        "sample_sd": 16.200137173630488
+      },
+      "local_hits": {
+        "mean": 172,
+        "sample_sd": 12.192894105447921
+      },
+      "cooperative_hits": {
+        "mean": 236,
+        "sample_sd": 8.640987597877148
+      },
+      "total_peer_checks": {
+        "mean": 1520.8,
+        "sample_sd": 27.062889720057612
+      },
+      "average_coordination_latency_ms": {
+        "mean": 96.9492,
+        "sample_sd": 3.243585012502883
+      }
+    },
+    {
+      "scenario": "mixed",
+      "strategy": "cooperative",
+      "overall_hit_rate": {
+        "mean": 29.28,
+        "sample_sd": 1.872490913788962
+      },
+      "average_latency": {
+        "mean": 100.37516737004364,
+        "sample_sd": 3.0338355891795223
+      },
+      "total_bandwidth_used": {
+        "mean": 201.08748000000125,
+        "sample_sd": 3.342560472585292
+      },
+      "origin_requests": {
+        "mean": 707.2,
+        "sample_sd": 18.72490913788962
+      },
+      "local_hits": {
+        "mean": 173,
+        "sample_sd": 13.17404856357967
+      },
+      "cooperative_hits": {
+        "mean": 119.8,
+        "sample_sd": 10.549354903921325
+      },
+      "total_peer_checks": {
+        "mean": 737.3,
+        "sample_sd": 47.63297177376192
+      },
+      "average_coordination_latency_ms": {
+        "mean": 28.4254,
+        "sample_sd": 1.070279734981052
+      }
+    },
+    {
+      "scenario": "mixed",
+      "strategy": "ml_cooperative",
+      "overall_hit_rate": {
+        "mean": 29.75,
+        "sample_sd": 2.5105333651990724
+      },
+      "average_latency": {
+        "mean": 101.22746308794234,
+        "sample_sd": 3.1898512828323597
+      },
+      "total_bandwidth_used": {
+        "mean": 201.44798000000134,
+        "sample_sd": 7.855517837347607
+      },
+      "origin_requests": {
+        "mean": 715.7,
+        "sample_sd": 26.094060626893622
+      },
+      "local_hits": {
+        "mean": 191.4,
+        "sample_sd": 12.473972903610141
+      },
+      "cooperative_hits": {
+        "mean": 106.1,
+        "sample_sd": 16.305759037155486
+      },
+      "total_peer_checks": {
+        "mean": 722.7,
+        "sample_sd": 39.33347457601759
+      },
+      "average_coordination_latency_ms": {
+        "mean": 28.0994,
+        "sample_sd": 1.1435585978281424
+      }
+    }
+  ],
+  "paired_comparisons": [
+    {
+      "scenario": "fast",
+      "comparator": "always_cooperative",
+      "latency_wins": 8,
+      "latency_ties": 2,
+      "means": {
+        "latency_reduction_pct": 1.9826538047109985,
+        "hit_rate_gain_pp": -1.8399999999999976,
+        "traffic_reduction_pct": -0.7202605031741962,
+        "origin_request_difference": 18.4
+      }
+    },
+    {
+      "scenario": "fast",
+      "comparator": "non_cooperative",
+      "latency_wins": 2,
+      "latency_ties": 0,
+      "means": {
+        "latency_reduction_pct": -0.7522950515594714,
+        "hit_rate_gain_pp": 21.680000000000003,
+        "traffic_reduction_pct": 8.768191985079776,
+        "origin_request_difference": -216.8
+      }
+    },
+    {
+      "scenario": "slow",
+      "comparator": "always_cooperative",
+      "latency_wins": 10,
+      "latency_ties": 0,
+      "means": {
+        "latency_reduction_pct": 48.32417657919512,
+        "hit_rate_gain_pp": -17.36,
+        "traffic_reduction_pct": -7.589764031445397,
+        "origin_request_difference": 173.6
+      }
+    },
+    {
+      "scenario": "slow",
+      "comparator": "non_cooperative",
+      "latency_wins": 0,
+      "latency_ties": 0,
+      "means": {
+        "latency_reduction_pct": -31.861260957945017,
+        "hit_rate_gain_pp": 6.159999999999999,
+        "traffic_reduction_pct": 2.5486373175874126,
+        "origin_request_difference": -61.6
+      }
+    },
+    {
+      "scenario": "mixed",
+      "comparator": "always_cooperative",
+      "latency_wins": 10,
+      "latency_ties": 0,
+      "means": {
+        "latency_reduction_pct": 40.73111604257907,
+        "hit_rate_gain_pp": -11.520000000000001,
+        "traffic_reduction_pct": -4.891785748548922,
+        "origin_request_difference": 115.2
+      }
+    },
+    {
+      "scenario": "mixed",
+      "comparator": "non_cooperative",
+      "latency_wins": 0,
+      "latency_ties": 0,
+      "means": {
+        "latency_reduction_pct": -19.874454252240074,
+        "hit_rate_gain_pp": 12.0,
+        "traffic_reduction_pct": 4.991206943483322,
+        "origin_request_difference": -120
+      }
+    }
+  ]
+}

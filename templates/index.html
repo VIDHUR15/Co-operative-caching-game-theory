@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cooperative Caching Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        :root {
+
+            /* Base surfaces */
+            --ink: #090c14;
+            --surface: #121828;
+            --surface-2: #19233a;
+            --line: #232d47;
+
+            /* Strategy identity - used consistently across
+               the table, cards AND every chart, instead of a
+               different accent per chart. */
+            --base-strategy: #7c89a8;   /* Non-Cooperative */
+            --coop-strategy: #9b8cff;   /* Cooperative (game theory) */
+            --ml-strategy: #f5a623;     /* ML Cooperative */
+
+            /* Signal accent - interactive elements only */
+            --signal: #35d0ba;
+            --signal-dim: #1f6f65;
+
+            /* Text */
+            --text: #e7ebf3;
+            --text-dim: #8b95ac;
+            --text-faint: #5b6580;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, sans-serif;
+            background: var(--ink);
+            color: var(--text);
+            min-height: 100vh;
+
+            background-image:
+                radial-gradient(
+                    circle at 15% 0%,
+                    rgba(53, 208, 186, 0.07),
+                    transparent 45%
+                ),
+                radial-gradient(
+                    circle at 85% 15%,
+                    rgba(155, 140, 255, 0.06),
+                    transparent 40%
+                );
+
+            background-attachment: fixed;
+        }
+
+        h1, h2, h3 {
+            font-family: "Space Grotesk", "Inter", sans-serif;
+        }
+
+        /* ------------------------------------------------
+           Header
+        ------------------------------------------------ */
+
+        .header {
+            background: rgba(18, 24, 40, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line);
+            padding: 20px 40px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 44px;
+            height: 44px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .logo circle.pulse {
+            animation: pulse 2.6s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.35;
+                transform: scale(1.6);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .logo circle.pulse {
+                animation: none;
+            }
+        }
+
+        .title h1 {
+            font-size: 21px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .title p {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 3px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 7px 14px;
+
+            border: 1px solid var(--line);
+            border-radius: 6px;
+
+            color: var(--signal);
+
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+            background: var(--signal);
+            box-shadow: 0 0 8px var(--signal);
+        }
+
+
+        /* ------------------------------------------------
+           Main container
+        ------------------------------------------------ */
+
+        .container {
+            width: 92%;
+            max-width: 1400px;
+
+            margin: 30px auto;
+        }
+
+
+        /* ------------------------------------------------
+           Control panel
+        ------------------------------------------------ */
+
+        .control-panel {
+            background: var(--surface);
+
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            border-left: 3px solid var(--signal);
+
+            padding: 24px 26px;
+
+            margin-bottom: 28px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .control-text h2 {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .control-text p {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 5px;
+            max-width: 46ch;
+        }
+
+        .controls {
+            display: flex;
+            align-items: flex-end;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .control-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-field label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-dim);
+        }
+
+        .field-hint {
+            font-size: 11px;
+            color: var(--text-faint);
+        }
+
+        .controls label {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .controls input {
+            width: 92px;
+
+            padding: 9px 11px;
+
+            border-radius: 6px;
+
+            border: 1px solid var(--line);
+
+            background: var(--ink);
+            color: var(--text);
+            font-family: inherit;
+            font-variant-numeric: tabular-nums;
+
+            outline: none;
+        }
+
+        .controls input:focus {
+            border-color: var(--signal);
+        }
+
+        .run-button {
+            padding: 11px 20px;
+
+            border: none;
+            border-radius: 6px;
+
+            background: var(--signal);
+            color: #06110f;
+
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 14px;
+
+            cursor: pointer;
+
+            /* Sits level with the inputs, which are taller
+               than the button due to their label + hint. */
+            margin-bottom: 19px;
+
+            transition: background-color 0.15s ease;
+        }
+
+        .run-button:hover {
+            background: #4fe0ca;
+        }
+
+
+        /* ------------------------------------------------
+           KPI cards
+        ------------------------------------------------ */
+
+        .section-title {
+            margin: 30px 0 15px;
+
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .cards {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--surface);
+
+            border: 1px solid var(--line);
+            border-radius: 8px;
+
+            padding: 20px;
+
+            position: relative;
+        }
+
+        .card-label {
+            font-size: 12px;
+            color: var(--text-dim);
+
+            margin-bottom: 10px;
+        }
+
+        .card-value {
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 30px;
+            font-weight: 600;
+
+            color: var(--text);
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-faint);
+
+            margin-top: 8px;
+        }
+
+
+        /* ------------------------------------------------
+           Comparison table
+        ------------------------------------------------ */
+
+        .table-container {
+            background: var(--surface);
+
+            border: 1px solid var(--line);
+            border-radius: 8px;
+
+            overflow: hidden;
+
+            margin-bottom: 28px;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+
+            padding: 14px 18px;
+
+            background: var(--surface-2);
+
+            color: var(--text-dim);
+
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 14px 18px;
+
+            border-top: 1px solid var(--line);
+
+            font-size: 14px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .always-cooperative { color: #14b8a6; }
+
+        .cooperative {
+            color: var(--coop-strategy);
+            font-weight: 600;
+        }
+
+        .non-cooperative {
+            color: var(--base-strategy);
+        }
+
+        .ml-cooperative {
+            color: var(--ml-strategy);
+            font-weight: 600;
+        }
+
+
+        /* ------------------------------------------------
+           Charts
+        ------------------------------------------------ */
+
+        .charts {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 16px;
+
+            margin-bottom: 28px;
+        }
+
+        .chart-card {
+            background: var(--surface);
+
+            border: 1px solid var(--line);
+            border-radius: 8px;
+
+            padding: 22px;
+
+            min-height: 350px;
+        }
+
+        .chart-header {
+            margin-bottom: 20px;
+        }
+
+        .chart-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .chart-header p {
+            font-size: 12px;
+            color: var(--text-faint);
+
+            margin-top: 4px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+
+            height: 260px;
+        }
+
+
+        /* ------------------------------------------------
+           Improvement section
+        ------------------------------------------------ */
+
+        .improvements {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 16px;
+
+            margin-bottom: 30px;
+        }
+
+        .improvement-card {
+            background: var(--surface);
+
+            border: 1px solid var(--line);
+            border-radius: 8px;
+
+            padding: 20px;
+
+            text-align: center;
+        }
+
+        .improvement-value {
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 26px;
+            font-weight: 600;
+
+            color: var(--signal);
+
+            margin-bottom: 6px;
+        }
+
+        .improvement-label {
+            font-size: 12px;
+
+            color: var(--text-dim);
+        }
+
+
+        /* ------------------------------------------------
+           Footer
+        ------------------------------------------------ */
+
+        footer {
+            text-align: center;
+
+            padding: 25px;
+
+            border-top: 1px solid var(--line);
+
+            color: var(--text-faint);
+
+            font-size: 12px;
+        }
+
+
+        /* ------------------------------------------------
+           Empty state
+        ------------------------------------------------ */
+
+        .empty {
+            background: var(--surface);
+
+            border: 1px dashed var(--line);
+            border-radius: 8px;
+
+            padding: 60px 20px;
+
+            text-align: center;
+
+            margin-top: 25px;
+        }
+
+        .empty h2 {
+            font-size: 19px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .empty p {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+
+        /* ------------------------------------------------
+           Responsive
+        ------------------------------------------------ */
+
+        @media (max-width: 1000px) {
+
+            .cards {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .improvements {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .charts {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+        @media (max-width: 600px) {
+
+            .header {
+                padding: 18px;
+            }
+
+            .container {
+                width: 94%;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .improvements {
+                grid-template-columns: 1fr;
+            }
+
+            .control-panel {
+                align-items: flex-start;
+            }
+
+            .controls {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .status {
+                display: none;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="header">
+
+    <div class="logo-section">
+
+        <div class="logo">
+            <svg viewBox="0 0 44 44" fill="none">
+                <line x1="10" y1="32" x2="22" y2="12" stroke="#232d47" stroke-width="2"/>
+                <line x1="22" y1="12" x2="34" y2="32" stroke="#232d47" stroke-width="2"/>
+                <line x1="10" y1="32" x2="34" y2="32" stroke="#232d47" stroke-width="2"/>
+                <circle cx="22" cy="12" r="4" fill="#9b8cff"/>
+                <circle cx="10" cy="32" r="4" fill="#f5a623"/>
+                <circle cx="34" cy="32" r="4" fill="#7c89a8"/>
+                <circle class="pulse" cx="22" cy="12" r="4" fill="#9b8cff"/>
+            </svg>
+        </div>
+
+        <div class="title">
+
+            <h1>
+                Cooperative Caching
+            </h1>
+
+            <p>
+                Game theory + ML edge caching simulator
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="status">
+
+        <span class="status-dot"></span>
+
+        Ready
+
+    </div>
+
+</header>
+
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<div class="container">
+
+
+    <!-- =================================================
+         CONTROL PANEL
+    ================================================== -->
+
+    <div class="control-panel">
+
+        <div class="control-text">
+
+            <h2>
+                Simulation Control
+            </h2>
+
+            <p>
+                Compare non-cooperative, always-cooperative, game-theoretic
+                cooperative, and ML-driven predictive
+                caching. Cache size below the catalog size
+                is what makes eviction matter; keep users
+                ≥ edges or the surplus edges stay empty.
+            </p>
+
+        </div>
+
+
+        <form method="POST" class="controls">
+
+            <div class="control-field">
+
+                <label for="num_requests">
+                    Requests
+                </label>
+
+                <input
+                    type="number"
+                    id="num_requests"
+                    name="num_requests"
+                    value="{{ num_requests }}"
+                    min="1"
+                    max="20000"
+                >
+
+                <span class="field-hint">
+                    Run length
+                </span>
+
+            </div>
+
+
+            <div class="control-field">
+
+                <label for="cache_capacity">
+                    Cache size
+                </label>
+
+                <input
+                    type="number"
+                    id="cache_capacity"
+                    name="cache_capacity"
+                    value="{{ cache_capacity }}"
+                    min="1"
+                    max="50"
+                >
+
+                <span class="field-hint">
+                    Items per edge
+                </span>
+
+            </div>
+
+
+            <div class="control-field">
+
+                <label for="edges_per_region">
+                    Edges
+                </label>
+
+                <input
+                    type="number"
+                    id="edges_per_region"
+                    name="edges_per_region"
+                    value="{{ edges_per_region }}"
+                    min="2"
+                    max="6"
+                >
+
+                <span class="field-hint">
+                    Per region
+                </span>
+
+            </div>
+
+
+            <div class="control-field">
+
+                <label for="users_per_region">
+                    Users
+                </label>
+
+                <input
+                    type="number"
+                    id="users_per_region"
+                    name="users_per_region"
+                    value="{{ users_per_region }}"
+                    min="1"
+                    max="20"
+                >
+
+                <span class="field-hint">
+                    Per region
+                </span>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="run-button"
+            >
+                ▶ Run Simulation
+            </button>
+
+        </form>
+
+    </div>
+
+
+
+    {% if cooperative and non_cooperative and ml_cooperative %}
+    <p>Origin requests include demand and prefetch accesses. Latency includes synchronous
+    prefetch transfers. A current-request prefetch is an origin miss, not a cache hit.
+    Game-Theoretic denotes the simplified payoff-based retrieval policy: connected peers
+    remain willing to serve content; the decision selects a retrieval route.</p>
+    <div class="card" style="margin-bottom: 24px; padding: 24px; overflow-x: auto;">
+        <h2>Ordinary sharing versus game-theoretic cooperation</h2>
+        <p>Always-Cooperative checks the local cache, then the first connected peer
+        holding the content, then the origin. It uses LRU without game theory or ML.</p>
+        <table>
+            <thead><tr><th>Comparison</th><th>Hit-rate gain (percentage points)</th>
+            <th>Latency reduction</th><th>Traffic reduction</th><th>Origin-request reduction</th></tr></thead>
+            <tbody>
+            {% for label, baseline, candidate, change in [
+                ('Always-Cooperative vs Non-Cooperative', non_cooperative, always_cooperative, improvement_always),
+                ('Game-Theoretic vs Always-Cooperative', always_cooperative, cooperative, improvement_game_vs_always)
+            ] %}
+            <tr><td>{{ label }}</td>
+            <td>{{ '%.2f'|format(candidate.overall_hit_rate - baseline.overall_hit_rate) }}</td>
+            <td>{{ '%.2f'|format(change.latency) }}%</td>
+            <td>{{ '%.2f'|format(change.bandwidth) }}%</td>
+            <td>{% if baseline.origin_requests %}{{ '%.2f'|format(change.origin_load) }}%{% else %}N/A{% endif %}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <p>Negative reductions indicate an increase. Matching results are possible
+        when the game approves every useful peer transfer.</p>
+    </div>
+
+
+
+    <!-- =================================================
+         KPI SECTION
+    ================================================== -->
+
+    <h2 class="section-title">
+        Network Performance
+    </h2>
+
+
+    <div class="cards">
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Cooperative Hit Rate
+            </div>
+
+            <div class="card-value">
+                {{ "%.2f"|format(cooperative.overall_hit_rate) }}%
+            </div>
+
+            <div class="card-subtitle">
+                Overall cache efficiency
+            </div>
+
+        </div>
+
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Average Latency
+            </div>
+
+            <div class="card-value">
+                {{ "%.2f"|format(cooperative.average_latency) }}
+                <span style="font-size:14px;">ms</span>
+            </div>
+
+            <div class="card-subtitle">
+                Cooperative strategy
+            </div>
+
+        </div>
+
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Origin Requests
+            </div>
+
+            <div class="card-value">
+                {{ cooperative.origin_requests }}
+            </div>
+
+            <div class="card-subtitle">
+                Requests reaching origin
+            </div>
+
+        </div>
+
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Bandwidth Used
+            </div>
+
+            <div class="card-value">
+                {{ "%.2f"|format(cooperative.total_bandwidth_used) }}
+                <span style="font-size:14px;">MB</span>
+            </div>
+
+            <div class="card-subtitle">
+                Total network transfer
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         COMPARISON TABLE
+    ================================================== -->
+
+    <h2 class="section-title">
+        Strategy Comparison
+    </h2>
+
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Metric
+                    </th>
+
+                    <th>
+                        Non-Cooperative
+                    </th>
+
+                    <th>
+                        Always-Cooperative
+                    </th>
+
+                    <th>
+                        Game-Theoretic
+                    </th>
+
+                    <th>
+                        ML Cooperative
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                <tr>
+
+                    <td>
+                        Total Requests
+                    </td>
+
+                    <td class="non-cooperative">
+                        {{ non_cooperative.total_requests }}
+                    </td>
+
+                    <td class="always-cooperative">
+                        {{ always_cooperative.total_requests }}
+                    </td>
+
+                    <td class="cooperative">
+                        {{ cooperative.total_requests }}
+                    </td>
+
+                    <td class="ml-cooperative">
+                        {{ ml_cooperative.total_requests }}
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Local Cache Hits
+                    </td>
+
+                    <td>
+                        {{ non_cooperative.local_hits }}
+                    </td>
+
+                    <td class="always-cooperative">
+                        {{ always_cooperative.local_hits }}
+                    </td>
+
+                    <td class="cooperative">
+                        {{ cooperative.local_hits }}
+                    </td>
+
+                    <td class="ml-cooperative">
+                        {{ ml_cooperative.local_hits }}
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Cooperative Cache Hits
+                    </td>
+
+                    <td>
+                        {{ non_cooperative.cooperative_hits }}
+                    </td>
+
+                    <td class="always-cooperative">
+                        {{ always_cooperative.cooperative_hits }}
+                    </td>
+
+                    <td class="cooperative">
+                        {{ cooperative.cooperative_hits }}
+                    </td>
+
+                    <td class="ml-cooperative">
+                        {{ ml_cooperative.cooperative_hits }}
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Origin Requests
+                    </td>
+
+                    <td>
+                        {{ non_cooperative.origin_requests }}
+                    </td>
+
+                    <td class="always-cooperative">
+                        {{ always_cooperative.origin_requests }}
+                    </td>
+
+                    <td class="cooperative">
+                        {{ cooperative.origin_requests }}
+                    </td>
+
+                    <td class="ml-cooperative">
+                        {{ ml_cooperative.origin_requests }}
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Overall Hit Rate
+                    </td>
+
+                    <td>
+                        {{ "%.2f"|format(non_cooperative.overall_hit_rate) }}%
+                    </td>
+
+                    <td class="always-cooperative">
+                        {{ "%.2f"|format(always_cooperative.overall_hit_rate) }}%
+                    </td>
+
+                    <td class="cooperative">
+                        {{ "%.2f"|format(cooperative.overall_hit_rate) }}%
+                    </td>
+
+                    <td class="ml-cooperative">
+                        {{ "%.2f"|format(ml_cooperative.overall_hit_rate) }}%
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Average Latency
+                    </td>
+
+                    <td>
+                        {{ "%.2f"|format(non_cooperative.average_latency) }}
+                        ms
+                    </td>
+
+                    <td class="always-cooperative">
+                        {{ "%.2f"|format(always_cooperative.average_latency) }}
+                        ms
+                    </td>
+
+                    <td class="cooperative">
+                        {{ "%.2f"|format(cooperative.average_latency) }}
+                        ms
+                    </td>
+
+                    <td class="ml-cooperative">
+                        {{ "%.2f"|format(ml_cooperative.average_latency) }}
+                        ms
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Total Bandwidth Used
+                    </td>
+
+                    <td>
+                        {{ "%.2f"|format(non_cooperative.total_bandwidth_used) }}
+                        MB
+                    </td>
+
+                    <td class="always-cooperative">
+                        {{ "%.2f"|format(always_cooperative.total_bandwidth_used) }}
+                        MB
+                    </td>
+
+                    <td class="cooperative">
+                        {{ "%.2f"|format(cooperative.total_bandwidth_used) }}
+                        MB
+                    </td>
+
+                    <td class="ml-cooperative">
+                        {{ "%.2f"|format(ml_cooperative.total_bandwidth_used) }}
+                        MB
+                    </td>
+
+                </tr>
+
+                {% for label, key in [('Prefetch origin accesses', 'prefetch_origin_requests'), ('Demand origin misses', 'demand_origin_requests'), ('Peer checks', 'total_peer_checks'), ('Average coordination overhead (ms)', 'average_coordination_latency_ms')] %}
+                <tr><td>{{ label }}</td>
+                {% for result in [non_cooperative, always_cooperative, cooperative, ml_cooperative] %}
+                <td>{{ '%.2f'|format(result[key]) }}</td>
+                {% endfor %}</tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+
+    <!-- =================================================
+         CHARTS
+    ================================================== -->
+
+    <h2 class="section-title">
+        Performance Visualization
+    </h2>
+
+
+    <div class="charts">
+
+
+        <!-- Hit Rate -->
+
+        <div class="chart-card">
+
+            <div class="chart-header">
+
+                <h3>
+                    Cache Hit Rate
+                </h3>
+
+                <p>
+                    Higher values indicate better cache efficiency.
+                </p>
+
+            </div>
+
+            <div class="chart-wrapper">
+
+                <canvas id="hitRateChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Latency -->
+
+        <div class="chart-card">
+
+            <div class="chart-header">
+
+                <h3>
+                    Average Latency
+                </h3>
+
+                <p>
+                    Lower latency indicates faster content delivery.
+                </p>
+
+            </div>
+
+            <div class="chart-wrapper">
+
+                <canvas id="latencyChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Bandwidth -->
+
+        <div class="chart-card">
+
+            <div class="chart-header">
+
+                <h3>
+                    Bandwidth Usage
+                </h3>
+
+                <p>
+                    Lower usage indicates reduced network traffic.
+                </p>
+
+            </div>
+
+            <div class="chart-wrapper">
+
+                <canvas id="bandwidthChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Origin Load -->
+
+        <div class="chart-card">
+
+            <div class="chart-header">
+
+                <h3>
+                    Origin Server Load
+                </h3>
+
+                <p>
+                    Lower origin traffic indicates better caching.
+                </p>
+
+            </div>
+
+            <div class="chart-wrapper">
+
+                <canvas id="originChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Cache Distribution -->
+
+        <div class="chart-card">
+
+            <div class="chart-header">
+
+                <h3>
+                    Cache Hit Distribution
+                </h3>
+
+                <p>
+                    Local versus cooperative cache hits.
+                </p>
+
+            </div>
+
+            <div class="chart-wrapper">
+
+                <canvas id="cacheChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- =================================================
+         IMPROVEMENTS
+    ================================================== -->
+
+    <h2 class="section-title">
+        Cooperative Caching Improvement
+    </h2>
+
+
+    <div class="improvements">
+
+
+        <div class="improvement-card">
+
+            <div class="improvement-value">
+
+                +{{ "%.2f"|format(improvement.hit_rate) }}%
+
+            </div>
+
+            <div class="improvement-label">
+
+                Hit Rate Improvement
+
+            </div>
+
+        </div>
+
+
+
+        <div class="improvement-card">
+
+            <div class="improvement-value">
+
+                {{ "%.2f"|format(improvement.latency) }}%
+
+            </div>
+
+            <div class="improvement-label">
+
+                Latency Reduction
+
+            </div>
+
+        </div>
+
+
+
+        <div class="improvement-card">
+
+            <div class="improvement-value">
+
+                {{ "%.2f"|format(improvement.bandwidth) }}%
+
+            </div>
+
+            <div class="improvement-label">
+
+                Bandwidth Reduction
+
+            </div>
+
+        </div>
+
+
+
+        <div class="improvement-card">
+
+            <div class="improvement-value">
+
+                {{ "%.2f"|format(improvement.origin_load) }}%
+
+            </div>
+
+            <div class="improvement-label">
+
+                Origin Load Reduction
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- =================================================
+         ML IMPROVEMENTS
+    ================================================== -->
+
+    <h2 class="section-title">
+        ML Cooperative Caching Improvement
+    </h2>
+
+
+    <div class="improvements">
+
+
+        <div class="improvement-card">
+
+            <div class="improvement-value">
+
+                +{{ "%.2f"|format(improvement_ml.hit_rate) }}%
+
+            </div>
+
+            <div class="improvement-label">
+
+                Hit Rate Improvement
+
+            </div>
+
+        </div>
+
+
+
+        <div class="improvement-card">
+
+            <div class="improvement-value">
+
+                {{ "%.2f"|format(improvement_ml.latency) }}%
+
+            </div>
+
+            <div class="improvement-label">
+
+                Latency Reduction
+
+            </div>
+
+        </div>
+
+
+
+        <div class="improvement-card">
+
+            <div class="improvement-value">
+
+                {{ "%.2f"|format(improvement_ml.bandwidth) }}%
+
+            </div>
+
+            <div class="improvement-label">
+
+                Bandwidth Reduction
+
+            </div>
+
+        </div>
+
+
+
+        <div class="improvement-card">
+
+            <div class="improvement-value">
+
+                {{ "%.2f"|format(improvement_ml.origin_load) }}%
+
+            </div>
+
+            <div class="improvement-label">
+
+                Origin Load Reduction
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- =================================================
+         JAVASCRIPT / CHARTS
+    ================================================== -->
+
+    <script>
+
+        /*
+         * Data generated by Flask
+         */
+
+        const graphData =
+            {{ graph_data | tojson }};
+
+
+        /*
+         * Common chart configuration
+         */
+
+        const chartOptions = {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+                legend: {
+
+                    labels: {
+
+                        color: "#8b95ac"
+
+                    }
+
+                }
+
+            },
+
+            scales: {
+
+                x: {
+
+                    ticks: {
+
+                        color: "#8b95ac"
+
+                    },
+
+                    grid: {
+
+                        color: "#232d47"
+
+                    }
+
+                },
+
+                y: {
+
+                    ticks: {
+
+                        color: "#8b95ac"
+
+                    },
+
+                    grid: {
+
+                        color: "#232d47"
+
+                    }
+
+                }
+
+            }
+
+        };
+
+
+        /*
+         * Cache Hit Rate
+         */
+
+        new Chart(
+
+            document.getElementById(
+                "hitRateChart"
+            ),
+
+            {
+
+                type: "bar",
+
+                data: {
+
+                    labels:
+                        graphData.hit_rate.labels,
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                "Hit Rate (%)",
+
+                            data:
+                                graphData.hit_rate.values,
+
+                            backgroundColor:
+                                [
+                                    "#7c89a8",
+                                    "#14b8a6",
+                                    "#9b8cff",
+                                    "#f5a623"
+                                ],
+
+                            borderRadius: 8
+
+                        }
+
+                    ]
+
+                },
+
+                options: chartOptions
+
+            }
+
+        );
+
+
+        /*
+         * Latency
+         */
+
+        new Chart(
+
+            document.getElementById(
+                "latencyChart"
+            ),
+
+            {
+
+                type: "bar",
+
+                data: {
+
+                    labels:
+                        graphData.latency.labels,
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                "Latency (ms)",
+
+                            data:
+                                graphData.latency.values,
+
+                            backgroundColor:
+                                [
+                                    "#7c89a8",
+                                    "#14b8a6",
+                                    "#9b8cff",
+                                    "#f5a623"
+                                ],
+
+                            borderRadius: 8
+
+                        }
+
+                    ]
+
+                },
+
+                options: chartOptions
+
+            }
+
+        );
+
+
+        /*
+         * Bandwidth
+         */
+
+        new Chart(
+
+            document.getElementById(
+                "bandwidthChart"
+            ),
+
+            {
+
+                type: "bar",
+
+                data: {
+
+                    labels:
+                        graphData.bandwidth.labels,
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                "Bandwidth (MB)",
+
+                            data:
+                                graphData.bandwidth.values,
+
+                            backgroundColor:
+                                [
+                                    "#7c89a8",
+                                    "#14b8a6",
+                                    "#9b8cff",
+                                    "#f5a623"
+                                ],
+
+                            borderRadius: 8
+
+                        }
+
+                    ]
+
+                },
+
+                options: chartOptions
+
+            }
+
+        );
+
+
+        /*
+         * Origin server load
+         */
+
+        new Chart(
+
+            document.getElementById(
+                "originChart"
+            ),
+
+            {
+
+                type: "bar",
+
+                data: {
+
+                    labels:
+                        graphData.origin_load.labels,
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                "Origin Requests",
+
+                            data:
+                                graphData.origin_load.values,
+
+                            backgroundColor:
+                                [
+                                    "#7c89a8",
+                                    "#14b8a6",
+                                    "#9b8cff",
+                                    "#f5a623"
+                                ],
+
+                            borderRadius: 8
+
+                        }
+
+                    ]
+
+                },
+
+                options: chartOptions
+
+            }
+
+        );
+
+
+        /*
+         * Cache hit distribution
+         */
+
+        new Chart(
+
+            document.getElementById(
+                "cacheChart"
+            ),
+
+            {
+
+                type: "bar",
+
+                data: {
+
+                    labels:
+                        graphData.cache_hits.labels,
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                "Local Cache Hits",
+
+                            data:
+                                graphData.cache_hits.local,
+
+                            backgroundColor:
+                                "#35d0ba",
+
+                            borderRadius: 6
+
+                        },
+
+                        {
+
+                            label:
+                                "Cooperative Cache Hits",
+
+                            data:
+                                graphData.cache_hits.cooperative,
+
+                            backgroundColor:
+                                "#9b8cff",
+
+                            borderRadius: 6
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    ...chartOptions,
+
+                    scales: {
+
+                        ...chartOptions.scales,
+
+                        x: {
+
+                            ...chartOptions.scales.x,
+
+                            stacked: true
+
+                        },
+
+                        y: {
+
+                            ...chartOptions.scales.y,
+
+                            stacked: true
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        );
+
+    </script>
+
+
+    {% else %}
+
+
+    <!-- =================================================
+         EMPTY STATE
+    ================================================== -->
+
+    <div class="empty">
+
+        <h2>
+            Ready to Simulate
+        </h2>
+
+        <p>
+            Enter the number of requests above and click
+            <strong>Run Simulation</strong> to analyze
+            cooperative caching performance.
+        </p>
+
+    </div>
+
+
+    {% endif %}
+
+
+</div>
+
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer>
+
+    Cooperative Caching Using Game Theory
+    &nbsp;•&nbsp;
+    Network Simulation Project
+
+</footer>
+
+
+</body>
+
+</html>
